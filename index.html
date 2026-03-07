@@ -1,0 +1,476 @@
+import React, { useState, useEffect } from 'react';
+import { CheckCircle, XCircle, Award, ChevronLeft, ChevronRight, Globe, Play, User, MapPin, Printer } from 'lucide-react';
+
+// --- البيانات والأسئلة (Data & Questions) ---
+// تم اختيار مجموعة مميزة وشاملة من الأسئلة من الصور المرفقة لتمثيل المنهج بالكامل
+const quizQuestions = [
+  { id: 1, text_ar: "الذكاء الاصطناعي هو التكنولوجيا التي تمكن الآلات من استخدام سمات البشرية في حل المشكلات.", text_en: "Artificial Intelligence is the technology that enables machines to use human traits to solve problems.", answer: true, explanation_ar: "الذكاء الاصطناعي يهدف إلى محاكاة القدرات الذهنية للبشر مثل التعلم والاستنتاج لحل المشكلات بكفاءة.", explanation_en: "AI aims to simulate human mental capabilities like learning and reasoning to solve problems efficiently." },
+  { id: 2, text_ar: "يتطلب مبدأ الشفافية أن يكون مصمم الأداة مستعداً لشرح كيفية عملها.", text_en: "The principle of transparency requires the tool designer to be ready to explain how it works.", answer: true, explanation_ar: "الشفافية تعني الوضوح، ويجب على المصممين توضيح كيف تتخذ خوارزميات الذكاء الاصطناعي قراراتها.", explanation_en: "Transparency means clarity; designers must explain how AI algorithms make their decisions." },
+  { id: 3, text_ar: "من الأخلاقيات عند تصميم أدوات الذكاء الإصطناعي أن يتم إهمال بيانات مجموعة معينة من الناس.", text_en: "It is ethical when designing AI tools to ignore the data of a specific group of people.", answer: false, explanation_ar: "خطأ! يجب أن يكون الذكاء الاصطناعي شاملاً وعادلاً (غير متحيز) ولا يهمّل أي فئة من المجتمع.", explanation_en: "False! AI must be inclusive and fair (unbiased) and should not neglect any group in society." },
+  { id: 4, text_ar: "المساعدون الصوتيون هي روبوتات رقمية تجيب عن أسئلتك أو تنفذ طلباتك عبر الصوت.", text_en: "Voice assistants are digital robots that answer your questions or execute your requests via voice.", answer: true, explanation_ar: "مثل مساعد جوجل وأليكسا، حيث تتفاعل معك عبر الأوامر الصوتية.", explanation_en: "Like Google Assistant and Alexa, which interact with you through voice commands." },
+  { id: 5, text_ar: "أليكسا (Alexa) من أمثلة الروبوتات الرقمية التي تجيب عن أسئلتك أو تنفذ طلباتك عبر الصوت.", text_en: "Alexa is an example of digital robots that answer your questions or execute your requests via voice.", answer: true, explanation_ar: "أليكسا هي مساعد صوتي ذكي من تطوير شركة أمازون يقوم بتنفيذ المهام الصوتية.", explanation_en: "Alexa is a smart voice assistant developed by Amazon that performs voice tasks." },
+  { id: 6, text_ar: "يعتمد الذكاء الإصطناعي على الخوارزميات في حل المشكلات واتخاذ القرارات.", text_en: "Artificial Intelligence relies on algorithms in problem-solving and decision-making.", answer: true, explanation_ar: "الخوارزميات هي سلسلة من الخطوات المنطقية التي يعتمد عليها الحاسوب للوصول إلى الحل.", explanation_en: "Algorithms are a series of logical steps the computer relies on to reach a solution." },
+  { id: 7, text_ar: "يجب أن تتسرب المعلومات الشخصية عند تصميم أدوات الذكاء الإصطناعي وتكون متاحة للجميع.", text_en: "Personal information should leak when designing AI tools and be available to everyone.", answer: false, explanation_ar: "خطأ كبير! الخصوصية والأمان هما من أهم قواعد تصميم التكنولوجيا، ويجب حماية بيانات المستخدمين.", explanation_en: "Big mistake! Privacy and security are key rules in tech design; user data must be protected." },
+  { id: 8, text_ar: "التجارة الإلكترونية هي عملية بيع وشراء السلع والخدمات عبر الإنترنت.", text_en: "E-commerce is the process of buying and selling goods and services over the internet.", answer: true, explanation_ar: "التجارة الإلكترونية سهلت علينا الحصول على المنتجات من أي مكان في العالم.", explanation_en: "E-commerce has made it easier for us to get products from anywhere in the world." },
+  { id: 9, text_ar: "لا يمكن استخدام الاستثمار الإلكتروني لشراء الأسهم والسندات.", text_en: "Electronic investment cannot be used to buy stocks and bonds.", answer: false, explanation_ar: "خطأ! الإنترنت يوفر منصات موثوقة تتيح للمستخدمين الاستثمار وشراء الأسهم والسندات بسهولة.", explanation_en: "False! The internet provides reliable platforms allowing users to easily invest and buy stocks/bonds." },
+  { id: 10, text_ar: "تساعد التقييمات في قياس جودة المنتج والخدمة قبل الشراء مما يساعد في اتخاذ القرار المناسب.", text_en: "Reviews help measure product and service quality before buying, aiding in making the right decision.", answer: true, explanation_ar: "قراءة آراء وتقييمات العملاء السابقين خطوة هامة قبل شراء أي منتج عبر الإنترنت.", explanation_en: "Reading previous customer reviews is an important step before buying any product online." },
+  { id: 11, text_ar: "يستحيل استخدام التسوق عبر الإنترنت في وقتنا الحالي.", text_en: "It is impossible to use online shopping nowadays.", answer: false, explanation_ar: "خطأ! التسوق عبر الإنترنت أصبح متاحاً وسهلاً للجميع في العصر الحالي.", explanation_en: "False! Online shopping has become available and easy for everyone in the current era." },
+  { id: 12, text_ar: "تعتبر محركات البحث من أدوات البحث التكنولوجي التي يمكن استخدامها عند التسوق الإلكتروني.", text_en: "Search engines are considered technological search tools that can be used during online shopping.", answer: true, explanation_ar: "محركات البحث مثل جوجل تساعدك في العثور على المنتجات ومقارنة أسعارها في المتاجر المختلفة.", explanation_en: "Search engines like Google help you find products and compare their prices across different stores." },
+  { id: 13, text_ar: "يجب أن تكون منتجات الشركات ذات جودة عالية ومواردها صديقة للبيئة.", text_en: "Company products must be of high quality and their resources environmentally friendly.", answer: true, explanation_ar: "الشركات المسؤولة تهتم بالاستدامة البيئية (Eco-friendly) وتقديم منتجات لا تضر بالكوكب.", explanation_en: "Responsible companies care about environmental sustainability (Eco-friendly) and offer harmless products." },
+  { id: 14, text_ar: "روبوتات المحادثة هم أشخاص حقيقيون يردون على الرسائل في نوافذ الدردشة.", text_en: "Chatbots are real people responding to messages in chat windows.", answer: false, explanation_ar: "خطأ! روبوتات المحادثة (Chatbots) هي برامج كمبيوتر تعمل بالذكاء الاصطناعي للرد تلقائياً.", explanation_en: "False! Chatbots are computer programs powered by AI to respond automatically." },
+  { id: 15, text_ar: "التواصل بالبريد الإلكتروني وسيلة رسمية ومهنية للتواصل مع مقدمي الخدمات التعليمية.", text_en: "Email communication is an official and professional way to communicate with educational service providers.", answer: true, explanation_ar: "البريد الإلكتروني هو الوسيلة الأفضل والاحترافية للتواصل مع المعلمين أو الإدارات.", explanation_en: "Email is the best and most professional way to communicate with teachers or administrations." },
+  { id: 16, text_ar: "العنصر الأكثر أهمية لتمكين المستلم من تحديد هدف الرسالة بسرعة في البريد الإلكتروني هو عنوان الرسالة (Subject).", text_en: "The most important element to enable the receiver to quickly determine the message's goal in an email is the Subject.", answer: true, explanation_ar: "عنوان الرسالة يعطي فكرة مختصرة وواضحة عن محتوى الإيميل قبل فتحه.", explanation_en: "The email Subject gives a brief and clear idea of the email's content before opening it." },
+  { id: 17, text_ar: "يمكن الاعتماد على التقييمات الوهمية بشكل كلي لتقييم المنتج.", text_en: "Fake reviews can be fully relied upon to evaluate a product.", answer: false, explanation_ar: "التقييمات الوهمية تضلل المشتري ولا يجب الاعتماد عليها أبداً.", explanation_en: "Fake reviews mislead the buyer and should never be relied upon." },
+  { id: 18, text_ar: "التقييمات المبالغ فيها إيجابية أو سلبية تكون في الغالب تقييمات موثوقة.", text_en: "Exaggerated positive or negative reviews are mostly reliable.", answer: false, explanation_ar: "خطأ، التقييمات المبالغ فيها قد تكون وهمية أو غير دقيقة.", explanation_en: "False, exaggerated reviews might be fake or inaccurate." },
+  { id: 19, text_ar: "يعتبر محرك بحث جوجل (Google) من محركات البحث التي يمكن استخدامها للتسوق عبر الإنترنت.", text_en: "Google search engine is considered one of the search engines that can be used for online shopping.", answer: true, explanation_ar: "جوجل يساعد في البحث عن المنتجات ومقارنة الأسعار والمواصفات.", explanation_en: "Google helps search for products and compare prices and specifications." },
+  { id: 20, text_ar: "يمكن استخدام منصات التواصل الاجتماعي للمساعدة في اتخاذ قرارات شراء المنتجات.", text_en: "Social media platforms can be used to help make product purchasing decisions.", answer: true, explanation_ar: "المنشورات والإعلانات وآراء الأصدقاء على وسائل التواصل تساعدنا في اتخاذ القرار.", explanation_en: "Posts, ads, and friends' opinions on social media help us make decisions." },
+  { id: 21, text_ar: "الأسهم هي أجزاء متساوية تنقسم إليها ملكية الشركة.", text_en: "Stocks are equal parts into which the ownership of a company is divided.", answer: true, explanation_ar: "عندما تشتري سهماً، تصبح مالكاً لجزء صغير من تلك الشركة.", explanation_en: "When you buy a stock, you become an owner of a small part of that company." },
+  { id: 22, text_ar: "السندات هي أوراق مالية تثبت أن مالكها قد أقرض الشركة مبلغاً من المال.", text_en: "Bonds are securities proving that their owner has lent the company a sum of money.", answer: true, explanation_ar: "السند هو بمثابة قرض تقدمه أنت للشركة وتسترد أموالك لاحقاً مع أرباح.", explanation_en: "A bond is like a loan you provide to the company, getting your money back later with interest." },
+  { id: 23, text_ar: "التداول المالي الإلكتروني يتيح للمستثمرين شراء وبيع الأسهم عبر الإنترنت.", text_en: "Electronic financial trading allows investors to buy and sell stocks online.", answer: true, explanation_ar: "التداول الإلكتروني (Trading) جعل البيع والشراء أسرع وأسهل عبر تطبيقات مخصصة.", explanation_en: "Electronic trading made buying and selling faster and easier through dedicated apps." },
+  { id: 24, text_ar: "لإنشاء اجتماع جديد في برامج الفيديو عليك النقر على خيار اجتماع جديد (New Meeting).", text_en: "To create a new meeting in video software, you must click on the 'New Meeting' option.", answer: true, explanation_ar: "زر (New Meeting) هو الخطوة الأولى لبدء غرفة اتصال مرئي مع الآخرين.", explanation_en: "The 'New Meeting' button is the first step to start a video call room with others." },
+  { id: 25, text_ar: "السلوك غير المناسب أثناء مؤتمر الفيديو يعد غير لائق ويجب تجنبه.", text_en: "Inappropriate behavior during a video conference is unacceptable and must be avoided.", answer: true, explanation_ar: "يجب الالتزام بآداب السلوك والمظهر اللائق أثناء الحصص أو الاجتماعات الافتراضية.", explanation_en: "You must adhere to proper etiquette and appearance during virtual classes or meetings." },
+  { id: 26, text_ar: "يعتبر Microsoft Word من برامج محادثات الفيديو.", text_en: "Microsoft Word is considered a video chatting program.", answer: false, explanation_ar: "خطأ! برنامج Word مخصص لكتابة ومعالجة النصوص. برامج الفيديو مثل Zoom أو Teams.", explanation_en: "False! Word is for word processing. Video programs are like Zoom or Teams." },
+  { id: 27, text_ar: "يمكنك نسخ رابط الاجتماع ومشاركته مع الأشخاص الذين تريدهم أن ينضموا إلى اجتماع الفيديو.", text_en: "You can copy the meeting link and share it with people you want to join the video meeting.", answer: true, explanation_ar: "الرابط (Link) هو المفتاح الذي يسمح للآخرين بالدخول إلى غرفتك الافتراضية.", explanation_en: "The Link is the key that allows others to enter your virtual room." },
+  { id: 28, text_ar: "توفر الحوسبة السحابية (Cloud Computing) مساحة لتخزين الملفات على الإنترنت.", text_en: "Cloud Computing provides space to store files on the internet.", answer: true, explanation_ar: "الحوسبة السحابية تتيح لك حفظ ملفاتك والوصول إليها من أي جهاز متصل بالإنترنت.", explanation_en: "Cloud computing allows you to save and access your files from any internet-connected device." },
+  { id: 29, text_ar: "لا توجد أي تطبيقات للحوسبة السحابية متاحة مجاناً للمستخدمين.", text_en: "There are no free cloud computing applications available to users.", answer: false, explanation_ar: "خطأ! تطبيقات مثل Google Drive توفر مساحة تخزين مجانية محدودة.", explanation_en: "False! Apps like Google Drive provide limited free storage space." },
+  { id: 30, text_ar: "يعتبر Google Drive من أمثلة تطبيقات الحوسبة السحابية.", text_en: "Google Drive is an example of cloud computing applications.", answer: true, explanation_ar: "جوجل درايف هو أشهر منصات التخزين السحابي لمشاركة الملفات.", explanation_en: "Google Drive is the most famous cloud storage platform for sharing files." },
+  { id: 31, text_ar: "لا يمكن مشاركة الملفات المخزنة على السحابة مع أشخاص آخرين.", text_en: "Files stored on the cloud cannot be shared with other people.", answer: false, explanation_ar: "خطأ! من أهم مميزات السحابة إمكانية مشاركة الملفات والعمل عليها معاً.", explanation_en: "False! A key feature of the cloud is the ability to share files and collaborate." },
+  { id: 32, text_ar: "يجب الاتصال بالإنترنت للوصول إلى الملفات المخزنة على السحابة.", text_en: "An internet connection is required to access files stored on the cloud.", answer: true, explanation_ar: "بدون إنترنت لا يمكنك الدخول إلى خوادم السحابة لجلب ملفاتك.", explanation_en: "Without the internet, you cannot access cloud servers to retrieve your files." },
+  { id: 33, text_ar: "يساعد التخزين السحابي على حماية الملفات من الضياع في حال تلف الجهاز.", text_en: "Cloud storage helps protect files from getting lost if the device is damaged.", answer: true, explanation_ar: "لأن الملفات محفوظة على الإنترنت وليس فقط داخل جهازك المكسور أو التالف.", explanation_en: "Because files are saved on the internet, not just inside your broken or damaged device." },
+  { id: 34, text_ar: "كلمات المرور القوية يجب أن تتكون من حروف فقط.", text_en: "Strong passwords must consist of letters only.", answer: false, explanation_ar: "خطأ! كلمة المرور القوية يجب أن تحتوي على حروف، أرقام، ورموز (مثل @ و #).", explanation_en: "False! A strong password should contain letters, numbers, and symbols (like @ and #)." },
+  { id: 35, text_ar: "المصادقة الثنائية (Two-Factor Authentication) تزيد من أمان الحسابات.", text_en: "Two-Factor Authentication increases account security.", answer: true, explanation_ar: "هي طبقة حماية إضافية تتطلب خطوتين لتسجيل الدخول (مثل كلمة المرور ورمز عبر الهاتف).", explanation_en: "It's an extra security layer requiring two steps to log in (like password and phone code)." },
+  { id: 36, text_ar: "مشاركة كلمات المرور مع الأصدقاء يعتبر أمراً آمناً.", text_en: "Sharing passwords with friends is considered safe.", answer: false, explanation_ar: "خطأ كبير! لا تشارك كلمات المرور الخاصة بك مع أي شخص للحفاظ على خصوصيتك.", explanation_en: "Big mistake! Do not share your passwords with anyone to maintain your privacy." },
+  { id: 37, text_ar: "من المهم تحديث برامج الحماية من الفيروسات بانتظام.", text_en: "It is important to regularly update antivirus software.", answer: true, explanation_ar: "التحديثات تضمن قدرة البرنامج على التعرف على الفيروسات الجديدة ومكافحتها.", explanation_en: "Updates ensure the software can recognize and combat new viruses." },
+  { id: 38, text_ar: "التصيد الاحتيالي (Phishing) هو محاولة للحصول على معلومات شخصية بطرق غير مشروعة.", text_en: "Phishing is an attempt to illegally obtain personal information.", answer: true, explanation_ar: "المخترقون يستخدمون رسائل مزيفة لسرقة بياناتك البنكية أو كلمات المرور.", explanation_en: "Hackers use fake messages to steal your banking data or passwords." },
+  { id: 39, text_ar: "يجب فتح الروابط المجهولة التي تصلنا عبر البريد الإلكتروني.", text_en: "We must open unknown links we receive via email.", answer: false, explanation_ar: "خطأ! الروابط المجهولة قد تحتوي على فيروسات أو برامج ضارة للاختراق.", explanation_en: "False! Unknown links may contain viruses or malicious hacking software." },
+  { id: 40, text_ar: "الشبكات الافتراضية الخاصة (VPN) تستخدم لتصفح الإنترنت بأمان.", text_en: "Virtual Private Networks (VPN) are used to browse the internet safely.", answer: true, explanation_ar: "الـ VPN يقوم بتشفير بياناتك وإخفاء هويتك أثناء تصفح الإنترنت.", explanation_en: "A VPN encrypts your data and hides your identity while browsing the internet." },
+  { id: 41, text_ar: "تستخدم لغة HTML لبناء هيكل صفحات الويب.", text_en: "HTML language is used to build the structure of web pages.", answer: true, explanation_ar: "لغة HTML هي الأساس الذي تُبنى عليه أي صفحة إنترنت (مثل العناوين والفقرات).", explanation_en: "HTML is the foundation upon which any web page is built (like headings, paragraphs)." },
+  { id: 42, text_ar: "تستخدم لغة JavaScript لإنشاء صفحات الويب الديناميكية (التفاعلية).", text_en: "JavaScript language is used to create dynamic (interactive) web pages.", answer: true, explanation_ar: "الجافا سكريبت تجعل الصفحة تتفاعل مع المستخدم (مثل الأزرار والنوافذ المنبثقة).", explanation_en: "JavaScript makes the page interact with the user (like buttons and popups)." },
+  { id: 43, text_ar: "تعتبر لغة بايثون (Python) من لغات البرمجة.", text_en: "Python is considered a programming language.", answer: true, explanation_ar: "بايثون هي لغة برمجة قوية وشائعة الاستخدام في الذكاء الاصطناعي وتطوير الويب.", explanation_en: "Python is a powerful programming language widely used in AI and web development." },
+  { id: 44, text_ar: "يمكن استخدام لغة HTML لإنشاء قواعد البيانات.", text_en: "HTML can be used to create databases.", answer: false, explanation_ar: "خطأ! HTML لغة هيكلة لصفحات الويب وليست لغة لإنشاء أو إدارة قواعد البيانات.", explanation_en: "False! HTML is a markup language for web pages, not for creating databases." },
+  { id: 45, text_ar: "تستخدم وسوم (Tags) في لغة HTML لتحديد هيكل صفحة الويب.", text_en: "Tags are used in HTML to define the structure of the web page.", answer: true, explanation_ar: "الوسوم مثل <h1> أو <p> هي التي تخبر المتصفح بكيفية عرض المحتوى.", explanation_en: "Tags like <h1> or <p> tell the browser how to display the content." },
+  { id: 46, text_ar: "العنصر <h1> يستخدم لكتابة أكبر عنوان في صفحة HTML.", text_en: "The <h1> element is used to write the largest heading in an HTML page.", answer: true, explanation_ar: "وسم h1 هو العنوان الرئيسي والأكبر، بينما h6 هو العنوان الأصغر.", explanation_en: "The h1 tag is the main and largest heading, while h6 is the smallest." },
+  { id: 47, text_ar: "لإضافة صورة في HTML نستخدم الوسم <img>.", text_en: "To add an image in HTML, we use the <img> tag.", answer: true, explanation_ar: "وسم img (Image) يُستخدم لعرض الصور، ويحتاج لخاصية src لتحديد مسار الصورة.", explanation_en: "The img tag is used to display images and requires the src attribute to locate it." },
+  { id: 48, text_ar: "يمكن إضافة أزرار تفاعلية معقدة باستخدام HTML فقط بدون الحاجة لأي لغة أخرى.", text_en: "Complex interactive buttons can be added using HTML only without any other language.", answer: false, explanation_ar: "خطأ! لبرمجة التفاعل المعقد تحتاج للغة مثل JavaScript بجانب HTML.", explanation_en: "False! To program complex interactivity, you need a language like JavaScript alongside HTML." },
+  { id: 49, text_ar: "المتصفحات (Browsers) مثل جوجل كروم تستخدم لعرض صفحات الويب.", text_en: "Browsers like Google Chrome are used to display web pages.", answer: true, explanation_ar: "المتصفح هو البرنامج الذي يقرأ أكواد HTML ويحولها لصفحة مرئية للمستخدم.", explanation_en: "A browser reads HTML code and turns it into a visible page for the user." },
+  { id: 50, text_ar: "يجب إنشاء كلمات مرور قوية ومختلفة لكل حساب.", text_en: "You must create strong and different passwords for each account.", answer: true, explanation_ar: "هذا يحمي حساباتك من الاختراق المتسلسل.", explanation_en: "This protects your accounts from a cascading breach." },
+  { id: 51, text_ar: "البرنامج الشهير الذي يستخدم كبديل لـ Microsoft Word هو GIMP.", text_en: "The famous program used as an alternative to Microsoft Word is GIMP.", answer: false, explanation_ar: "خطأ! GIMP هو لبرامج الصور، بينما بدائل الوورد هي Google Docs أو LibreOffice Writer.", explanation_en: "False! GIMP is for images. Alternatives to Word are Google Docs or LibreOffice Writer." },
+  { id: 52, text_ar: "يستخدم مصممو الجرافيك برنامج Adobe Photoshop لتحرير الصور.", text_en: "Graphic designers use Adobe Photoshop for image editing.", answer: true, explanation_ar: "برنامج فوتوشوب من أشهر البرامج الاحترافية المدفوعة لتعديل الصور وتصميمها.", explanation_en: "Photoshop is one of the most famous professional paid programs for image editing." },
+  { id: 53, text_ar: "لغات البرمجة هي مجموعة من القواعد والرموز التي تستخدم لإعطاء تعليمات لبرامج الحاسوب.", text_en: "Programming languages are a set of rules and symbols used to give instructions to computer programs.", answer: true, explanation_ar: "الحاسوب لا يفهم لغتنا، لذا نستخدم لغات البرمجة كأداة تواصل معه.", explanation_en: "Computers don't understand our language, so we use programming languages to communicate." },
+  { id: 54, text_ar: "يمكن دمج صورتين لتصبحا واحدة عن طريق تحرير الصور.", text_en: "Two images can be merged to become one through image editing.", answer: true, explanation_ar: "برامج التعديل مثل GIMP تتيح دمج الصور باستخدام خاصية الطبقات (Layers).", explanation_en: "Editing programs like GIMP allow merging images using the Layers feature." },
+  { id: 55, text_ar: "إذا كان الجهاز لا يشحن يجب التأكد من أن كابل الشاحن يعمل بشكل سليم.", text_en: "If the device is not charging, you must ensure that the charging cable is working properly.", answer: true, explanation_ar: "الخطوة الأولى لحل المشكلات هي التحقق من الكابلات والتوصيلات المادية.", explanation_en: "The first step to troubleshoot is checking physical cables and connections." },
+  { id: 56, text_ar: "يمكن استخدام برنامج GIMP على أنظمة التشغيل المختلفة.", text_en: "GIMP software can be used on different operating systems.", answer: true, explanation_ar: "GIMP برنامج متعدد المنصات (ويندوز، ماك، لينكس).", explanation_en: "GIMP is a cross-platform software (Windows, Mac, Linux)." },
+  { id: 57, text_ar: "يسمح برنامج GIMP باستخدام أدوات تشبه أدوات برنامج Adobe Photoshop مجاناً.", text_en: "GIMP allows using tools similar to Adobe Photoshop tools for free.", answer: true, explanation_ar: "GIMP هو برنامج مجاني ومفتوح المصدر يقدم أدوات قوية منافسة للفوتوشوب.", explanation_en: "GIMP is a free, open-source program offering powerful tools competing with Photoshop." },
+  { id: 58, text_ar: "برنامج GIMP هو برنامج لمعالجة النصوص وإجراء الحسابات.", text_en: "GIMP is a program for word processing and performing calculations.", answer: false, explanation_ar: "خطأ! هو برنامج خاص بتعديل ومعالجة الرسوميات والصور (Raster Graphics Editor).", explanation_en: "False! It is a specific program for editing and processing raster graphics and images." },
+  { id: 59, text_ar: "يعتبر برنامج GIMP من البرامج مفتوحة المصدر (Open Source).", text_en: "GIMP is considered an open-source program.", answer: true, explanation_ar: "مفتوح المصدر يعني أن الكود الخاص به متاح للجميع مجاناً لتطويره واستخدامه.", explanation_en: "Open-source means its code is freely available to everyone to develop and use." },
+  { id: 60, text_ar: "لا يمكن قص الصور (Crop) باستخدام برنامج GIMP.", text_en: "Images cannot be cropped using GIMP.", answer: false, explanation_ar: "خطأ! أداة القص (Crop tool) من الأساسيات في برنامج GIMP وتستخدم باستمرار.", explanation_en: "False! The Crop tool is a basic feature in GIMP and is used constantly." },
+  { id: 61, text_ar: "الطبقات (Layers) في GIMP تساعد في تعديل أجزاء محددة من الصورة دون التأثير على الباقي.", text_en: "Layers in GIMP help edit specific parts of the image without affecting the rest.", answer: true, explanation_ar: "الطبقات هي ميزة احترافية تتيح العمل على عناصر مختلفة في الصورة بشكل منفصل.", explanation_en: "Layers are a professional feature allowing work on different elements of an image separately." },
+  { id: 62, text_ar: "أدوات التحديد (Selection tools) في GIMP تستخدم لاختيار جزء معين من الصورة للعمل عليه.", text_en: "Selection tools in GIMP are used to select a specific part of the image to work on.", answer: true, explanation_ar: "مثل أداة التحديد المستطيل (Rectangle Select) أو الحر (Free Select).", explanation_en: "Like the Rectangle Select tool or the Free Select tool." },
+  { id: 63, text_ar: "الاتصال المتزامن (Synchronous) يتطلب استجابة فورية من الطرف الآخر.", text_en: "Synchronous communication requires an immediate response from the other party.", answer: true, explanation_ar: "مثل المكالمات الهاتفية أو الفيديو، حيث يحدث التواصل في نفس الوقت الحقيقي.", explanation_en: "Like phone calls or video calls, where communication happens in real-time." },
+  { id: 64, text_ar: "البريد الإلكتروني يعتبر من أمثلة الاتصال المتزامن.", text_en: "Email is considered an example of synchronous communication.", answer: false, explanation_ar: "خطأ! البريد الإلكتروني (غير متزامن)، لأنك لا تنتظر رداً فورياً في نفس اللحظة.", explanation_en: "False! Email is (asynchronous) because you don't expect an immediate reply." },
+  { id: 65, text_ar: "محادثات الفيديو تعتبر اتصالاً متزامناً.", text_en: "Video chats are considered synchronous communication.", answer: true, explanation_ar: "لأن جميع الأطراف متواجدون ويتفاعلون مع بعضهم البعض في نفس اللحظة.", explanation_en: "Because all parties are present and interacting with each other at the exact same moment." },
+  { id: 66, text_ar: "يمكن استخدام البريد الإلكتروني لإرسال ملفات كمرفقات (Attachments).", text_en: "Email can be used to send files as attachments.", answer: true, explanation_ar: "ميزة المرفقات تتيح إرسال الصور، المستندات، ومقاطع الفيديو مع الرسالة.", explanation_en: "The attachment feature allows sending images, documents, and videos with the message." },
+  { id: 67, text_ar: "CC في البريد الإلكتروني تعني نسخة مخفية لا يراها الآخرون.", text_en: "CC in email means a blind carbon copy that others cannot see.", answer: false, explanation_ar: "خطأ! الـ CC (نسخة كربونية) يراها الجميع، أما الـ BCC فهي النسخة المخفية.", explanation_en: "False! CC (Carbon Copy) is seen by everyone, while BCC is the blind/hidden copy." },
+  { id: 68, text_ar: "من آداب التواصل الرقمي احترام خصوصية الآخرين.", text_en: "Digital etiquette includes respecting others' privacy.", answer: true, explanation_ar: "يجب ألا نشارك صور أو بيانات الأصدقاء دون إذنهم المسبق.", explanation_en: "We must not share photos or data of friends without their prior permission." },
+  { id: 69, text_ar: "شبكة الإنترنت هي شبكة محلية صغيرة لا يمكن الوصول إليها من جميع أنحاء العالم.", text_en: "The internet is a small local network that cannot be accessed from worldwide.", answer: false, explanation_ar: "خطأ! الإنترنت شبكة عالمية ضخمة (WAN) تربط الأجهزة في جميع أنحاء العالم.", explanation_en: "False! The internet is a massive Wide Area Network (WAN) connecting devices globally." },
+  { id: 70, text_ar: "أجهزة الاستشعار (Sensors) تستخدم في الروبوتات لجمع المعلومات من البيئة المحيطة.", text_en: "Sensors are used in robots to gather information from the surrounding environment.", answer: true, explanation_ar: "الروبوت يرى ويشعر من خلال الكاميرات والمستشعرات ليتفاعل مع بيئته.", explanation_en: "A robot sees and feels through cameras and sensors to interact with its environment." },
+  { id: 71, text_ar: "لا يمكن برمجة الروبوتات للقيام بمهام محددة.", text_en: "Robots cannot be programmed to perform specific tasks.", answer: false, explanation_ar: "خطأ! الروبوتات أساساً تُبرمج لتنفيذ مهام متكررة أو خطيرة بدقة عالية.", explanation_en: "False! Robots are fundamentally programmed to perform repetitive or dangerous tasks precisely." },
+  { id: 72, text_ar: "الذكاء الاصطناعي يمكن أن يساعد في تحسين مجالات مثل الرعاية الصحية.", text_en: "Artificial Intelligence can help improve fields like healthcare.", answer: true, explanation_ar: "يُستخدم AI في تشخيص الأمراض بدقة وتطوير أدوية جديدة.", explanation_en: "AI is used in accurately diagnosing diseases and developing new medicines." },
+  { id: 73, text_ar: "بصمة الإصبع تعتبر من طرق المصادقة البيومترية (Biometric Authentication).", text_en: "Fingerprint is considered a biometric authentication method.", answer: true, explanation_ar: "المصادقة البيومترية تستخدم صفات جسدية فريدة (البصمة، الوجه) لفتح الأجهزة.", explanation_en: "Biometric authentication uses unique physical traits (fingerprint, face) to unlock devices." },
+  { id: 74, text_ar: "شبكة Wi-Fi هي شبكة سلكية تعتمد على الكابلات للاتصال.", text_en: "A Wi-Fi network is a wired network relying on cables for connection.", answer: false, explanation_ar: "خطأ! شبكة الواي فاي هي شبكة لا سلكية (Wireless) تعتمد على الموجات.", explanation_en: "False! Wi-Fi is a wireless network that relies on radio waves." },
+  { id: 75, text_ar: "المودم (Modem) يقوم بربط شبكتك المحلية بشبكة الإنترنت.", text_en: "A modem connects your local network to the internet.", answer: true, explanation_ar: "المودم هو البوابة التي تجلب إشارة الإنترنت من الشركة المزودة إلى منزلك.", explanation_en: "The modem is the gateway that brings the internet signal from the ISP to your home." },
+  { id: 76, text_ar: "المحولات (Switches) تستخدم لربط الأجهزة المتعددة داخل شبكة محلية واحدة.", text_en: "Switches are used to connect multiple devices within a single local network.", answer: true, explanation_ar: "المحول (Switch) يوجه البيانات بدقة للجهاز المقصود داخل شبكة المدرسة أو الشركة.", explanation_en: "A switch accurately routes data to the intended device within a school or company network." },
+  { id: 77, text_ar: "عنوان IP هو معرف فريد لكل جهاز متصل بالشبكة.", text_en: "An IP address is a unique identifier for every device connected to the network.", answer: true, explanation_ar: "لا يمكن لجهازين على نفس الشبكة أن يحملا نفس عنوان الـ IP (مثل رقم هاتفك).", explanation_en: "No two devices on the same network can have the same IP address (like your phone number)." },
+  { id: 78, text_ar: "يمكن استخدام التكنولوجيا والألعاب لتعزيز الوعي البيئي لدى الطلاب.", text_en: "Technology and games can be used to promote environmental awareness among students.", answer: true, explanation_ar: "الألعاب التعليمية والتطبيقات تساهم في تثقيفنا حول الحفاظ على البيئة بمتعة.", explanation_en: "Educational games and apps help educate us about environmental preservation enjoyably." },
+  { id: 79, text_ar: "حقوق الطبع والنشر (Copyright) تحمي الأعمال الأصلية للمبدعين.", text_en: "Copyright protects the original works of creators.", answer: true, explanation_ar: "تمنع هذه الحقوق الآخرين من سرقة كتاباتك، صورك، أو أفكارك ونسبها لأنفسهم.", explanation_en: "These rights prevent others from stealing your writing, photos, or ideas and claiming them." },
+  { id: 80, text_ar: "يمكن نسخ وبيع البرامج المحمية بحقوق الطبع والنشر دون إذن صاحبها.", text_en: "Copyrighted software can be copied and sold without the owner's permission.", answer: false, explanation_ar: "خطأ! هذه تعتبر جريمة قرصنة إلكترونية يعاقب عليها القانون.", explanation_en: "False! This is considered software piracy, which is punishable by law." },
+  { id: 81, text_ar: "الاستخدام العادل (Fair Use) يسمح باستخدام جزء صغير من الأعمال المحمية لأغراض تعليمية.", text_en: "Fair Use allows using a small portion of copyrighted works for educational purposes.", answer: true, explanation_ar: "يحق للمعلم اقتباس جزء صغير من كتاب لشرح درس دون الحاجة لإذن مسبق.", explanation_en: "A teacher can quote a small part of a book for a lesson without prior permission." },
+  { id: 82, text_ar: "لا يمكن تغيير خلفية سطح المكتب في نظام التشغيل.", text_en: "The desktop background cannot be changed in the operating system.", answer: false, explanation_ar: "خطأ! أنظمة التشغيل مثل ويندوز توفر أدوات لتخصيص الخلفيات والألوان بسهولة.", explanation_en: "False! OS like Windows provide tools to easily customize backgrounds and colors." },
+  { id: 83, text_ar: "لوحة المفاتيح (Keyboard) من وحدات الإخراج في الحاسوب.", text_en: "The keyboard is an output device in a computer.", answer: false, explanation_ar: "خطأ! لوحة المفاتيح هي وحدة إدخال (Input) لإدخال النصوص للحاسوب.", explanation_en: "False! The keyboard is an input device used to enter text into the computer." },
+  { id: 84, text_ar: "الشاشة (Monitor) من وحدات الإخراج الأساسية للحاسوب.", text_en: "The monitor is a basic output device for the computer.", answer: true, explanation_ar: "الشاشة تعرض (تخرج) لنا المعلومات والصور والفيديوهات التي يعالجها الجهاز.", explanation_en: "The monitor displays (outputs) the information, images, and videos processed by the device." },
+  { id: 85, text_ar: "تستخدم الطابعة (Printer) لتحويل المستندات الرقمية إلى نسخ ورقية.", text_en: "A printer is used to convert digital documents into paper copies.", answer: true, explanation_ar: "الطابعة هي وحدة إخراج تنقل ما على الشاشة إلى ورق ملموس.", explanation_en: "A printer is an output device that transfers what's on the screen to tangible paper." },
+  { id: 86, text_ar: "تكنولوجيا الواقع الافتراضي (VR) تأخذ المستخدمين إلى عالم ثلاثي الأبعاد.", text_en: "Virtual Reality (VR) technology takes users into a 3D world.", answer: true, explanation_ar: "باستخدام نظارات الـ VR يمكنك زيارة المتاحف أو الفضاء وأنت في مكانك.", explanation_en: "Using VR headsets, you can visit museums or space while staying in your place." },
+  { id: 87, text_ar: "الواقع المعزز (AR) يضيف عناصر رقمية للبيئة الحقيقية حولك.", text_en: "Augmented Reality (AR) adds digital elements to the real environment around you.", answer: true, explanation_ar: "مثل فلاتر الكاميرا، حيث ترى الغرفة الحقيقية مضافاً إليها رسوم كرتونية من خلال الهاتف.", explanation_en: "Like camera filters, where you see the real room with cartoon graphics via your phone." },
+  { id: 88, text_ar: "جميع المعلومات الموجودة على شبكة الإنترنت دقيقة وموثوقة 100%.", text_en: "All information on the internet is 100% accurate and reliable.", answer: false, explanation_ar: "خطأ! يوجد الكثير من الشائعات والمعلومات الخاطئة، يجب التحقق من المصادر.", explanation_en: "False! There are many rumors and false info; sources must be verified." },
+  { id: 89, text_ar: "مواقع الويب التي تنتهي بـ .edu أو .gov تعتبر مصادر موثوقة للمعلومات.", text_en: "Websites ending in .edu or .gov are considered reliable sources of information.", answer: true, explanation_ar: "لأنها تعود لمؤسسات تعليمية (جامعات) أو جهات حكومية رسمية.", explanation_en: "Because they belong to educational institutions (universities) or official government bodies." },
+  { id: 90, text_ar: "يفضل الرد على التنمر الإلكتروني (Cyberbullying) بالعنف أو الشتائم.", text_en: "It is preferable to respond to cyberbullying with violence or insults.", answer: false, explanation_ar: "خطأ! يجب حظر المتنمر (Block) وإبلاغ شخص بالغ وموثوق (كالأب أو المعلم).", explanation_en: "False! You should block the bully and inform a trusted adult (like a parent or teacher)." },
+  { id: 91, text_ar: "تتيح المواقع التعليمية (مثل بنك المعرفة المصري EKB) موارد مفيدة للطلاب.", text_en: "Educational sites (like the Egyptian Knowledge Bank EKB) provide useful resources for students.", answer: true, explanation_ar: "بنك المعرفة المصري يوفر آلاف الكتب والفيديوهات الموثوقة والمجانية للطلاب.", explanation_en: "EKB provides thousands of reliable, free books and videos for students." },
+  { id: 92, text_ar: "لا يمكن استرجاع الملفات المحذوفة إذا تم إفراغ سلة المحذوفات (Recycle Bin).", text_en: "Deleted files cannot be recovered if the Recycle Bin is emptied.", answer: false, explanation_ar: "نظرياً يمكن لبرامج متخصصة استرجاعها، لكن يجب الحذر عند الحذف النهائي.", explanation_en: "Theoretically, specialized software can recover them, but be careful with permanent deletion." },
+  { id: 93, text_ar: "لتحديد كل النص في مستند، يمكن استخدام الاختصار (Ctrl + A).", text_en: "To select all text in a document, you can use the shortcut (Ctrl + A).", answer: true, explanation_ar: "حرف A يرمز لكلمة All، وهو اختصار سريع لتحديد محتوى الصفحة بالكامل.", explanation_en: "The letter A stands for All, a quick shortcut to select the entire page content." },
+  { id: 94, text_ar: "الاختصار (Ctrl + C) يستخدم للصق (Paste) النصوص.", text_en: "The shortcut (Ctrl + C) is used to paste text.", answer: false, explanation_ar: "خطأ! Ctrl + C يستخدم للنسخ (Copy)، بينما Ctrl + V يستخدم للصق (Paste).", explanation_en: "False! Ctrl + C is for Copy, while Ctrl + V is for Paste." },
+  { id: 95, text_ar: "يعتبر راوتر (Router) جهازاً أساسياً لتوزيع الإنترنت اللاسلكي في المنزل.", text_en: "A router is an essential device for distributing wireless internet at home.", answer: true, explanation_ar: "الراوتر يستقبل الإنترنت ويوزعه كشبكة واي فاي لجميع أجهزتك.", explanation_en: "The router receives the internet and distributes it as a Wi-Fi network to all your devices." },
+  { id: 96, text_ar: "يمكن استخدام لغة البرمجة لإنشاء ألعاب كمبيوتر وتطبيقات هواتف.", text_en: "Programming languages can be used to create computer games and mobile apps.", answer: true, explanation_ar: "البرمجة هي أساس كل التطبيقات والألعاب التي نستخدمها يومياً.", explanation_en: "Programming is the foundation of all apps and games we use daily." },
+  { id: 97, text_ar: "يجب الجلوس بوضعية صحيحة أثناء استخدام الحاسوب لحماية الظهر والرقبة.", text_en: "You must sit in a correct posture while using the computer to protect your back and neck.", answer: true, explanation_ar: "بيئة العمل المريحة (Ergonomics) تحميك من الآلام الناتجة عن الجلوس الخاطئ.", explanation_en: "Ergonomics protects you from pain caused by incorrect sitting postures." },
+  { id: 98, text_ar: "القرص الصلب (Hard Disk) يستخدم لتخزين البيانات بشكل مؤقت ويفقدها عند انقطاع الكهرباء.", text_en: "The Hard Disk is used for temporary data storage and loses it during power outages.", answer: false, explanation_ar: "خطأ! القرص الصلب يخزن البيانات بشكل دائم. الذاكرة المؤقتة هي الرام (RAM).", explanation_en: "False! A Hard Disk stores data permanently. Temporary memory is RAM." },
+  { id: 99, text_ar: "يساعد نظام تحديد المواقع (GPS) في معرفة الاتجاهات للوصول للأماكن المختلفة.", text_en: "The Global Positioning System (GPS) helps find directions to reach different places.", answer: true, explanation_ar: "نظام الـ GPS يتصل بالأقمار الصناعية لتحديد موقعك وتوجيهك خطوة بخطوة.", explanation_en: "The GPS connects to satellites to locate you and guide you step-by-step." },
+  { id: 100, text_ar: "المنهجية الصحيحة للبحث عبر الإنترنت تتطلب استخدام كلمات مفتاحية (Keywords) محددة.", text_en: "The correct online search methodology requires using specific keywords.", answer: true, explanation_ar: "استخدام كلمات دقيقة ومحددة يساعد محرك البحث على إيجاد النتائج الصحيحة بسرعة.", explanation_en: "Using precise keywords helps the search engine find accurate results quickly." }
+];
+
+// --- النصوص المترجمة للواجهة (UI Translations) ---
+const translations = {
+  ar: {
+    title: "مراجعة تكنولوجيا المعلومات",
+    subtitle: "الصف السادس الابتدائي - المنهج الجديد",
+    academy: "تحت إشراف: أكاديمية تكنولوجيا المعلومات بالجيزة",
+    year: "للعام الدراسي 2025/2026",
+    startBtn: "ابدأ التحدي!",
+    namePlaceholder: "أدخل اسمك الثلاثي...",
+    adminPlaceholder: "الإدارة التعليمية (مثل: إدارة أكتوبر)",
+    trueBtn: "صح",
+    falseBtn: "خطأ",
+    nextBtn: "السؤال التالي",
+    finishBtn: "إنهاء وإصدار الشهادة",
+    correct: "إجابة صحيحة! 🎉",
+    wrong: "إجابة خاطئة! 💡",
+    question: "سؤال",
+    of: "من",
+    certTitle: "شهـادة تميـز وتفـوق",
+    certAwardedTo: "تُمنح هذه الشهادة للطالب/ة المتميز/ة:",
+    certAdmin: "التابع لإدارة:",
+    certScore: "لاجتيازه مراجعة مادة تكنولوجيا المعلومات (ICT) بنسبة نجاح:",
+    certCongrats: "مع تمنياتنا بدوام التفوق والنجاح",
+    printBtn: "طباعة الشهادة",
+    restartBtn: "إعادة الاختبار",
+    enterDetails: "يرجى إدخال اسمك والإدارة التعليمية للبدء",
+    scoreWord: "الدرجة:"
+  },
+  en: {
+    title: "ICT Review Quiz",
+    subtitle: "6th Grade - New Curriculum",
+    academy: "Supervised by: Information Technology Academy in Giza",
+    year: "Academic Year 2025/2026",
+    startBtn: "Start Challenge!",
+    namePlaceholder: "Enter your full name...",
+    adminPlaceholder: "Educational Admin (e.g., October Admin)",
+    trueBtn: "True",
+    falseBtn: "False",
+    nextBtn: "Next Question",
+    finishBtn: "Finish & Get Certificate",
+    correct: "Correct Answer! 🎉",
+    wrong: "Wrong Answer! 💡",
+    question: "Question",
+    of: "of",
+    certTitle: "Certificate of Excellence",
+    certAwardedTo: "This certificate is awarded to the outstanding student:",
+    certAdmin: "From Administration:",
+    certScore: "For passing the ICT review quiz with a score of:",
+    certCongrats: "Wishing you continued success and excellence",
+    printBtn: "Print Certificate",
+    restartBtn: "Restart Quiz",
+    enterDetails: "Please enter your name and administration to start",
+    scoreWord: "Score:"
+  }
+};
+
+export default function App() {
+  // --- States (إدارة حالة التطبيق) ---
+  const [lang, setLang] = useState('ar');
+  const [studentName, setStudentName] = useState('');
+  const [schoolAdmin, setSchoolAdmin] = useState('');
+  const [hasStarted, setHasStarted] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isFinished, setIsFinished] = useState(false);
+
+  const t = translations[lang];
+  const q = quizQuestions[currentIndex];
+
+  // --- Functions (دوال التحكم) ---
+  const handleStart = () => {
+    if (studentName.trim() && schoolAdmin.trim()) {
+      setHasStarted(true);
+    } else {
+      alert(t.enterDetails);
+    }
+  };
+
+  const handleAnswer = (answerBool) => {
+    setSelectedAnswer(answerBool);
+    setShowExplanation(true);
+    if (answerBool === q.answer) {
+      setScore(score + 1);
+    }
+  };
+
+  const handleNext = () => {
+    setShowExplanation(false);
+    setSelectedAnswer(null);
+    if (currentIndex + 1 < quizQuestions.length) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setIsFinished(true);
+    }
+  };
+
+  const restartQuiz = () => {
+    setHasStarted(false);
+    setIsFinished(false);
+    setCurrentIndex(0);
+    setScore(0);
+    setShowExplanation(false);
+    setSelectedAnswer(null);
+    setStudentName('');
+    setSchoolAdmin('');
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // تبديل اللغة
+  const toggleLanguage = () => {
+    setLang(lang === 'ar' ? 'en' : 'ar');
+  };
+
+  // --- واجهة المستخدم (UI Components) ---
+
+  // 1. شاشة البداية (Welcome Screen)
+  if (!hasStarted) {
+    return (
+      <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 font-sans ${lang === 'ar' ? 'dir-rtl' : 'dir-ltr'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full transform transition-all hover:scale-105 duration-500 border-t-8 border-indigo-500">
+          
+          <div className="flex justify-between items-center mb-6">
+            <button onClick={toggleLanguage} className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-bold bg-indigo-50 px-3 py-1 rounded-full transition-colors">
+              <Globe size={18} /> {lang === 'ar' ? 'English' : 'عربي'}
+            </button>
+            <div className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full font-bold text-sm shadow-sm flex items-center gap-1">
+              <Award size={16} /> ICT 2025
+            </div>
+          </div>
+
+          <div className="text-center mb-8">
+            <div className="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+              <User size={48} className="text-indigo-600" />
+            </div>
+            <h1 className="text-3xl font-extrabold text-gray-800 mb-2">{t.title}</h1>
+            <p className="text-indigo-600 font-semibold mb-1">{t.subtitle}</p>
+            <p className="text-sm text-gray-500">{t.academy}</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="relative">
+              <User className={`absolute top-3.5 text-gray-400 ${lang==='ar'?'right-3':'left-3'}`} size={20} />
+              <input 
+                type="text" 
+                placeholder={t.namePlaceholder}
+                className={`w-full bg-gray-50 border-2 border-gray-200 rounded-xl py-3 px-10 focus:outline-none focus:border-indigo-500 focus:bg-white transition-colors ${lang==='ar'?'text-right pr-10':'text-left pl-10'}`}
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+              />
+            </div>
+            <div className="relative">
+              <MapPin className={`absolute top-3.5 text-gray-400 ${lang==='ar'?'right-3':'left-3'}`} size={20} />
+              <input 
+                type="text" 
+                placeholder={t.adminPlaceholder}
+                className={`w-full bg-gray-50 border-2 border-gray-200 rounded-xl py-3 px-10 focus:outline-none focus:border-indigo-500 focus:bg-white transition-colors ${lang==='ar'?'text-right pr-10':'text-left pl-10'}`}
+                value={schoolAdmin}
+                onChange={(e) => setSchoolAdmin(e.target.value)}
+              />
+            </div>
+            
+            <button 
+              onClick={handleStart}
+              className="w-full mt-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-700 transition-all flex justify-center items-center gap-2"
+            >
+              <Play fill="currentColor" size={20} /> {t.startBtn}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. شاشة الشهادة (Certificate Screen)
+  if (isFinished) {
+    const percentage = Math.round((score / quizQuestions.length) * 100);
+    return (
+      <div className={`min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 print:bg-white print:p-0 font-sans ${lang === 'ar' ? 'dir-rtl' : 'dir-ltr'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+        
+        {/* أزرار التحكم - لا تظهر في الطباعة */}
+        <div className="mb-6 flex gap-4 print:hidden">
+          <button onClick={handlePrint} className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-blue-700 flex items-center gap-2">
+            <Printer size={20} /> {t.printBtn}
+          </button>
+          <button onClick={restartQuiz} className="bg-gray-600 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-gray-700">
+             {t.restartBtn}
+          </button>
+          <button onClick={toggleLanguage} className="bg-white text-gray-800 px-4 py-2 rounded-lg font-bold shadow border border-gray-200 flex items-center gap-2">
+            <Globe size={18} /> {lang === 'ar' ? 'EN' : 'AR'}
+          </button>
+        </div>
+
+        {/* تصميم الشهادة */}
+        <div className="relative bg-white w-full max-w-4xl p-2 border-[16px] border-double border-indigo-900 shadow-2xl print:shadow-none print:border-[12px]">
+          <div className="border-4 border-yellow-500 p-8 sm:p-16 text-center relative overflow-hidden h-full">
+            
+            {/* خلفية مائية للزينة */}
+            <Award className="absolute text-yellow-50 opacity-10 w-96 h-96 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0" />
+            
+            <div className="relative z-10">
+              <h1 className="text-4xl sm:text-6xl font-black text-indigo-900 mb-6 drop-shadow-sm">
+                {t.certTitle}
+              </h1>
+              
+              <div className="w-32 h-2 bg-yellow-400 mx-auto mb-8 rounded-full"></div>
+
+              <p className="text-xl sm:text-2xl text-gray-600 mb-4 font-semibold">{t.certAwardedTo}</p>
+              <h2 className="text-3xl sm:text-5xl font-bold text-blue-700 mb-6 border-b-2 border-dotted border-gray-400 inline-block pb-2 px-8">
+                {studentName}
+              </h2>
+
+              <p className="text-xl text-gray-600 mb-2">{t.certAdmin}</p>
+              <h3 className="text-2xl font-bold text-indigo-800 mb-8">{schoolAdmin}</h3>
+
+              <div className="bg-indigo-50 inline-block px-8 py-4 rounded-2xl mb-8 border-2 border-indigo-100">
+                <p className="text-lg text-gray-700 mb-2">{t.certScore}</p>
+                <div className="text-4xl font-black text-green-600 flex items-center justify-center gap-2">
+                  {percentage}% <span className="text-2xl text-gray-500 font-bold">({score}/{quizQuestions.length})</span>
+                </div>
+              </div>
+
+              <p className="text-xl text-gray-600 italic mb-12">{t.certCongrats}</p>
+
+              <div className="flex flex-col sm:flex-row justify-between items-center mt-12 pt-8 border-t-2 border-gray-200">
+                <div className="text-center mb-4 sm:mb-0">
+                  <p className="font-bold text-lg text-indigo-900">أكاديمية تكنولوجيا المعلومات</p>
+                  <p className="text-sm text-gray-500">محافظة الجيزة</p>
+                </div>
+                
+                <div className="w-24 h-24 bg-yellow-400 rounded-full flex items-center justify-center border-4 border-indigo-900 shadow-lg transform rotate-12">
+                  <Award size={48} className="text-indigo-900" />
+                </div>
+
+                <div className="text-center mt-4 sm:mt-0">
+                  <p className="font-bold text-lg text-indigo-900">{lang === 'ar' ? 'العام الدراسي' : 'Academic Year'}</p>
+                  <p className="font-bold text-blue-700">2025 / 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. شاشة الأسئلة (Quiz Screen)
+  const progress = ((currentIndex) / quizQuestions.length) * 100;
+
+  return (
+    <div className={`min-h-screen bg-gray-50 flex flex-col font-sans ${lang === 'ar' ? 'dir-rtl' : 'dir-ltr'}`} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      
+      {/* الهيدر */}
+      <header className="bg-white shadow-sm p-4 sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto flex justify-between items-center">
+          <div className="flex flex-col">
+            <span className="font-bold text-indigo-900 text-lg">{studentName}</span>
+            <span className="text-xs text-gray-500">{schoolAdmin}</span>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="text-center bg-indigo-50 px-4 py-2 rounded-xl">
+              <span className="block text-xs text-indigo-400 font-bold uppercase">{t.scoreWord}</span>
+              <span className="block font-black text-xl text-indigo-700">{score}</span>
+            </div>
+            <button onClick={toggleLanguage} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+              <Globe className="text-gray-600" size={20} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* شريط التقدم */}
+      <div className="w-full bg-gray-200 h-2">
+        <div 
+          className="bg-green-500 h-2 transition-all duration-500 ease-out" 
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
+
+      <main className="flex-grow flex items-center justify-center p-4">
+        <div className="max-w-3xl w-full">
+          
+          <div className="text-center mb-6">
+            <span className="inline-block bg-yellow-400 text-yellow-900 px-4 py-1 rounded-full font-bold text-sm shadow-sm mb-4">
+              {t.question} {currentIndex + 1} {t.of} {quizQuestions.length}
+            </span>
+          </div>
+
+          {/* بطاقة السؤال */}
+          <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-10 mb-6 border-b-8 border-indigo-500 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10 opacity-50"></div>
+            <h2 className={`text-2xl sm:text-3xl font-bold text-gray-800 leading-relaxed text-center ${lang === 'ar' ? 'leading-loose' : ''}`}>
+              {lang === 'ar' ? q.text_ar : q.text_en}
+            </h2>
+          </div>
+
+          {/* أزرار الإجابة (تختفي عند اختيار إجابة) */}
+          {!showExplanation && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+              <button 
+                onClick={() => handleAnswer(true)}
+                className="group relative bg-white border-2 border-green-500 text-green-600 font-bold text-2xl py-6 rounded-2xl shadow-sm hover:bg-green-500 hover:text-white transition-all transform hover:-translate-y-1"
+              >
+                <div className="flex justify-center items-center gap-3">
+                  <CheckCircle className="group-hover:scale-110 transition-transform" size={32} />
+                  {t.trueBtn}
+                </div>
+              </button>
+              
+              <button 
+                onClick={() => handleAnswer(false)}
+                className="group relative bg-white border-2 border-red-500 text-red-600 font-bold text-2xl py-6 rounded-2xl shadow-sm hover:bg-red-500 hover:text-white transition-all transform hover:-translate-y-1"
+              >
+                <div className="flex justify-center items-center gap-3">
+                  <XCircle className="group-hover:scale-110 transition-transform" size={32} />
+                  {t.falseBtn}
+                </div>
+              </button>
+            </div>
+          )}
+
+          {/* التغذية الراجعة (Explanation) */}
+          {showExplanation && (
+            <div className={`mt-6 rounded-3xl p-6 sm:p-8 text-white shadow-lg animate-fade-in-up ${selectedAnswer === q.answer ? 'bg-gradient-to-r from-green-500 to-green-600' : 'bg-gradient-to-r from-red-500 to-red-600'}`}>
+              <div className="flex items-center gap-4 mb-4">
+                {selectedAnswer === q.answer ? <CheckCircle size={40} /> : <XCircle size={40} />}
+                <h3 className="text-2xl font-bold">
+                  {selectedAnswer === q.answer ? t.correct : t.wrong}
+                </h3>
+              </div>
+              
+              <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm mb-6">
+                <p className="text-lg font-medium text-white leading-relaxed">
+                  {lang === 'ar' ? q.explanation_ar : q.explanation_en}
+                </p>
+              </div>
+
+              <button 
+                onClick={handleNext}
+                className="w-full bg-white text-gray-900 font-bold text-xl py-4 rounded-xl shadow hover:bg-gray-100 transition-colors flex justify-center items-center gap-2"
+              >
+                {currentIndex + 1 === quizQuestions.length ? t.finishBtn : t.nextBtn}
+                {lang === 'ar' ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
+              </button>
+            </div>
+          )}
+
+        </div>
+      </main>
+      
+      {/* ستايل الانيميشن الخفيف */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.4s ease-out forwards;
+        }
+      `}} />
+    </div>
+  );
+}
