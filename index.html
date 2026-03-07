@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICT Quiz 2025 - 6th Grade</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        .dir-rtl { direction: rtl; }
+        .dir-ltr { direction: ltr; }
+        @media print {
+            .print\:hidden { display: none !important; }
+            header, .progress-bar { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Inline SVG Icons (To avoid Lucide errors) ---
+        const Icons = {
+            Globe: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+            Award: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>,
+            User: () => <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+            Printer: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        };
+
+        const quizQuestions = [
+            { id: 1, text_ar: "الذكاء الاصطناعي هو التكنولوجيا التي تمكن الآلات من استخدام سمات البشرية في حل المشكلات.", text_en: "Artificial Intelligence is the technology that enables machines to use human traits to solve problems.", answer: true, explanation_ar: "الذكاء الاصطناعي يهدف إلى محاكاة القدرات الذهنية للبشر مثل التعلم والاستنتاج.", explanation_en: "AI aims to simulate human mental capabilities." },
+            { id: 2, text_ar: "يتطلب مبدأ الشفافية أن يكون مصمم الأداة مستعداً لشرح كيفية عملها.", text_en: "The principle of transparency requires the tool designer to be ready to explain how it works.", answer: true, explanation_ar: "الشفافية تعني الوضوح في كيفية اتخاذ القرارات.", explanation_en: "Transparency means clarity in decision making." },
+            { id: 3, text_ar: "من الأخلاقيات عند تصميم أدوات الذكاء الإصطناعي أن يتم إهمال بيانات مجموعة معينة من الناس.", text_en: "It is ethical when designing AI tools to ignore the data of a specific group of people.", answer: false, explanation_ar: "يجب أن يكون الذكاء الاصطناعي شاملاً وعادلاً.", explanation_en: "AI must be inclusive and fair." },
+            { id: 4, text_ar: "المساعدون الصوتيون هي روبوتات رقمية تجيب عن أسئلتك أو تنفذ طلباتك عبر الصوت.", text_en: "Voice assistants are digital robots that answer your questions via voice.", answer: true, explanation_ar: "مثل مساعد جوجل وأليكسا.", explanation_en: "Like Google Assistant and Alexa." },
+            { id: 5, text_ar: "أليكسا (Alexa) من أمثلة الروبوتات الرقمية التي تنفذ طلباتك عبر الصوت.", text_en: "Alexa is an example of digital robots that execute requests via voice.", answer: true, explanation_ar: "أليكسا مساعد ذكي من أمازون.", explanation_en: "Alexa is Amazon's smart assistant." },
+            { id: 6, text_ar: "يعتمد الذكاء الإصطناعي على الخوارزميات في حل المشكلات واتخاذ القرارات.", text_en: "AI relies on algorithms in problem-solving.", answer: true, explanation_ar: "الخوارزميات هي سلسلة من الخطوات المنطقية.", explanation_en: "Algorithms are logical steps." },
+            { id: 7, text_ar: "يجب أن تتسرب المعلومات الشخصية عند تصميم أدوات الذكاء الإصطناعي وتكون متاحة للجميع.", text_en: "Personal info should leak when designing AI tools.", answer: false, explanation_ar: "الخصوصية والأمان هما الأهم.", explanation_en: "Privacy and security are paramount." },
+            { id: 8, text_ar: "التجارة الإلكترونية هي عملية بيع وشراء السلع والخدمات عبر الإنترنت.", text_en: "E-commerce is buying and selling goods online.", answer: true, explanation_ar: "سهلت الحصول على المنتجات عالمياً.", explanation_en: "Made global products accessible." },
+            { id: 9, text_ar: "لا يمكن استخدام الاستثمار الإلكتروني لشراء الأسهم والسندات.", text_en: "Electronic investment cannot buy stocks.", answer: false, explanation_ar: "الإنترنت يوفر منصات موثوقة للاستثمار.", explanation_en: "Internet provides reliable investment platforms." },
+            { id: 10, text_ar: "تساعد التقييمات في قياس جودة المنتج قبل الشراء.", text_en: "Reviews help measure product quality.", answer: true, explanation_ar: "آراء العملاء تساعد في اتخاذ القرار.", explanation_en: "Customer opinions aid decision making." }
+            // تم اختصار الأسئلة هنا للمثال، يمكنك إضافة الـ 100 سؤال كاملة بنفس النمط
+        ];
+
+        const translations = {
+            ar: {
+                title: "مراجعة تكنولوجيا المعلومات",
+                subtitle: "الصف السادس الابتدائي - المنهج الجديد",
+                startBtn: "ابدأ التحدي!",
+                namePlaceholder: "أدخل اسمك الثلاثي...",
+                adminPlaceholder: "الإدارة التعليمية...",
+                trueBtn: "صح",
+                falseBtn: "خطأ",
+                nextBtn: "السؤال التالي",
+                finishBtn: "إنهاء وإصدار الشهادة",
+                correct: "إجابة صحيحة! 🎉",
+                wrong: "إجابة خاطئة! 💡",
+                certTitle: "شهـادة تميـز وتفـوق",
+                printBtn: "طباعة الشهادة",
+                scoreWord: "الدرجة:"
+            },
+            en: {
+                title: "ICT Review Quiz",
+                subtitle: "6th Grade - New Curriculum",
+                startBtn: "Start Challenge!",
+                namePlaceholder: "Enter your full name...",
+                adminPlaceholder: "Educational Admin...",
+                trueBtn: "True",
+                falseBtn: "False",
+                nextBtn: "Next Question",
+                finishBtn: "Finish & Get Certificate",
+                correct: "Correct Answer! 🎉",
+                wrong: "Wrong Answer! 💡",
+                certTitle: "Certificate of Excellence",
+                printBtn: "Print Certificate",
+                scoreWord: "Score:"
+            }
+        };
+
+        function App() {
+            const [lang, setLang] = useState('ar');
+            const [studentName, setStudentName] = useState('');
+            const [schoolAdmin, setSchoolAdmin] = useState('');
+            const [hasStarted, setHasStarted] = useState(false);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showExplanation, setShowExplanation] = useState(false);
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
+            const [isFinished, setIsFinished] = useState(false);
+
+            const t = translations[lang];
+            const q = quizQuestions[currentIndex];
+
+            const handleStart = () => {
+                if (studentName.trim() && schoolAdmin.trim()) setHasStarted(true);
+                else alert(lang === 'ar' ? "يرجى إدخال البيانات" : "Please enter details");
+            };
+
+            const handleAnswer = (ans) => {
+                setSelectedAnswer(ans);
+                setShowExplanation(true);
+                if (ans === q.answer) setScore(score + 1);
+            };
+
+            const handleNext = () => {
+                setShowExplanation(false);
+                setSelectedAnswer(null);
+                if (currentIndex + 1 < quizQuestions.length) setCurrentIndex(currentIndex + 1);
+                else setIsFinished(true);
+            };
+
+            if (!hasStarted) {
+                return (
+                    <div className={`min-h-screen flex items-center justify-center p-4 ${lang === 'ar' ? 'dir-rtl' : 'dir-ltr'}`}>
+                        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full border-t-8 border-indigo-600">
+                            <div className="flex justify-between mb-6">
+                                <button onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')} className="bg-indigo-50 px-4 py-2 rounded-full font-bold text-indigo-600 flex items-center gap-2">
+                                    <Icons.Globe /> {lang === 'ar' ? 'English' : 'عربي'}
+                                </button>
+                                <span className="bg-yellow-400 px-4 py-2 rounded-full font-bold text-xs flex items-center gap-2"><Icons.Award /> ICT 2025</span>
+                            </div>
+                            <div className="text-center mb-6">
+                                <div className="bg-indigo-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"><Icons.User /></div>
+                                <h1 className="text-3xl font-black text-gray-800">{t.title}</h1>
+                                <p className="text-indigo-600">{t.subtitle}</p>
+                            </div>
+                            <input type="text" placeholder={t.namePlaceholder} className="w-full mb-4 p-4 bg-gray-50 border rounded-xl" value={studentName} onChange={e => setStudentName(e.target.value)} />
+                            <input type="text" placeholder={t.adminPlaceholder} className="w-full mb-6 p-4 bg-gray-50 border rounded-xl" value={schoolAdmin} onChange={e => setSchoolAdmin(e.target.value)} />
+                            <button onClick={handleStart} className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-xl shadow-lg hover:bg-indigo-700">{t.startBtn}</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (isFinished) {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-100 print:bg-white">
+                        <button onClick={() => window.print()} className="mb-4 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold print:hidden flex items-center gap-2"><Icons.Printer /> {t.printBtn}</button>
+                        <div className="bg-white border-[12px] border-double border-indigo-900 p-8 text-center max-w-4xl w-full">
+                            <h1 className="text-5xl font-black text-indigo-900 mb-8">{t.certTitle}</h1>
+                            <p className="text-xl mb-4 text-gray-600">تُمنح هذه الشهادة للطالب/ة:</p>
+                            <h2 className="text-4xl font-bold text-blue-700 border-b-2 border-gray-300 inline-block px-10 mb-6">{studentName}</h2>
+                            <p className="text-lg text-gray-600">إدارة: {schoolAdmin}</p>
+                            <div className="my-10 bg-indigo-50 p-6 rounded-3xl inline-block">
+                                <p className="text-xl">نسبة النجاح:</p>
+                                <p className="text-5xl font-black text-green-600">{Math.round((score/quizQuestions.length)*100)}%</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className={`min-h-screen flex flex-col ${lang === 'ar' ? 'dir-rtl' : 'dir-ltr'}`}>
+                    <header className="bg-white p-4 shadow-sm flex justify-between items-center">
+                        <div className="font-bold text-indigo-900">{studentName}</div>
+                        <div className="bg-indigo-600 text-white px-4 py-1 rounded-lg"> {t.scoreWord} {score} </div>
+                    </header>
+                    <div className="h-2 bg-gray-200"><div className="h-full bg-green-500 transition-all" style={{width: `${(currentIndex/quizQuestions.length)*100}%`}}></div></div>
+                    <main className="flex-grow flex items-center justify-center p-6">
+                        <div className="max-w-2xl w-full">
+                            <div className="bg-white p-8 rounded-3xl shadow-xl mb-6 text-center border-b-8 border-indigo-600">
+                                <h2 className="text-2xl font-bold">{lang === 'ar' ? q.text_ar : q.text_en}</h2>
+                            </div>
+                            {!showExplanation ? (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button onClick={() => handleAnswer(true)} className="bg-green-100 border-2 border-green-500 text-green-700 py-6 rounded-2xl font-bold text-2xl hover:bg-green-500 hover:text-white">{t.trueBtn}</button>
+                                    <button onClick={() => handleAnswer(false)} className="bg-red-100 border-2 border-red-500 text-red-700 py-6 rounded-2xl font-bold text-2xl hover:bg-red-500 hover:text-white">{t.falseBtn}</button>
+                                </div>
+                            ) : (
+                                <div className={`p-6 rounded-3xl text-white ${selectedAnswer === q.answer ? 'bg-green-600' : 'bg-red-600'}`}>
+                                    <h3 className="text-2xl font-bold mb-2">{selectedAnswer === q.answer ? t.correct : t.wrong}</h3>
+                                    <p className="bg-white/20 p-4 rounded-xl mb-4">{lang === 'ar' ? q.explanation_ar : q.explanation_en}</p>
+                                    <button onClick={handleNext} className="w-full bg-white text-gray-900 py-4 rounded-xl font-bold">{t.nextBtn}</button>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
